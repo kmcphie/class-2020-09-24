@@ -48,11 +48,60 @@ sep_new <-
 
 **Prompt:** Which classes had the biggest increases and decreases in undergraduate enrollments between September 1 and September 22? Obviously, you will need to join the two datasets which I have created for you above.
 
+```{r}
+sep_join = left_join(sep_old, sep_new, by = c("id", "title", "name", "department"), suffix = c("_old", "_new"))
+View(sep_join)
+```
+
+
 a) Make a table using **gt** which shows the five courses with the biggest increase. Use the [How to make a table](https://davidkane9.github.io/PPBDS/tools.html#how-to-make-a-table) section of *The Primer*.
+
+```{r}
+sep_join_inc <- sep_join %>%
+  select(id, name, u_grad_old, u_grad_new) %>%
+  mutate(enrollment_diff = u_grad_new - u_grad_old) %>%
+  arrange(desc(enrollment_diff)) %>%
+  slice(1:5)
+
+sep_join_inc %>%
+  gt() %>%
+  tab_header(title = "Biggest Increases in Enrollment", 
+              subtitle = "Harvard Register")
+```
+
 
 b) Make a table using **gt** which shows the five courses with the biggest decrease.
 
+```{r}
+sep_join_dec <- sep_join %>%
+  mutate(enrollment_diff = u_grad_new - u_grad_old) %>%
+  arrange(enrollment_diff) %>%
+  slice(1:5)
+
+sep_join_dec %>%
+  gt() %>%
+  tab_header(title = "Biggest Decreases in Enrollment", 
+              subtitle = "Harvard Register")
+```
+
+
 c) Make a nice looking graphic which shows these 10 courses.
+
+```{r}
+sep_join_ten <- rbind(sep_join_inc, sep_join_dec) %>%
+View(sep_join_ten)
+
+sep_join_ten %>%
+  ggplot(aes(x = fct_reorder(name, enrollment_diff), y = enrollment_diff)) +
+    geom_col(fill = "blue") +
+    coord_flip() +
+    labs(
+      title = "Courses With Greatest Increase and Decrease in Enrollment",
+      y = "Change in Enrollment",
+      x = " "
+    )
+```
+
 
 d) Write down some thoughts about what might explain these increases and decreases. Or is it all just random? How would we know?
 
